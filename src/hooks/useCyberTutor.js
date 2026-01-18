@@ -19,26 +19,29 @@ export const useCyberTutor = () => {
 
     // Initial Welcome / Idle State
     useEffect(() => {
-        if (currentMission) {
+        // Safety Check: If no mission or undefined, show Base status
+        if (!currentMission || currentMission === 'undefined' || !currentMission.title) {
             setMessages([{
                 id: Date.now(),
                 sender: 'ai',
-                text: `Agent, you have engaged mission: ${currentMission.title}. Awaiting orders.`,
-                isAi: true
-            }]);
-            setOptions([
-                { label: "Mission Objective?", action: "objective" },
-                { label: "Review Rules", action: "rules" }
-            ]);
-        } else {
-            setMessages([{
-                id: Date.now(),
-                sender: 'ai',
-                text: "CyberTutor v2.0 Online. Standing by for assignment.",
+                text: "Agent, you are back at Base. Select a mission from the map to begin.",
                 isAi: true
             }]);
             setOptions([]);
+            return;
         }
+
+        // Active Mission
+        setMessages([{
+            id: Date.now(),
+            sender: 'ai',
+            text: `Agent, you have engaged mission: ${currentMission.title}. Awaiting orders.`,
+            isAi: true
+        }]);
+        setOptions([
+            { label: "Mission Objective?", action: "objective" },
+            { label: "Review Rules", action: "rules" }
+        ]);
     }, [currentMission]);
 
     // Mistake Trigger
@@ -68,6 +71,9 @@ export const useCyberTutor = () => {
         switch (lastError.type) {
             case 'rail_placement':
                 errorMsg = "Negative. The pattern is Top, Bottom, Top, Bottom. Try again.";
+                break;
+            case 'wrong_letter':
+                errorMsg = "Incorrect sequence. Decryption requires precise character ordering. Check the sequence.";
                 break;
             case 'private_leak':
                 errorMsg = "SECURITY ALERT! Never transmit your Private Key directly. Mix it first!";

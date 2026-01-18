@@ -201,10 +201,7 @@ const MITM = () => {
                                 <div className="text-[10px] text-slate-400">PACKETS</div>
                                 <div className="text-xl font-bold text-white">{waveIndex}/{TOTAL_PACKETS}</div>
                             </div>
-                            <div>
-                                <div className="text-[10px] text-slate-400">BUGS CAUGHT</div>
-                                <div className="text-xl font-bold text-emerald-400">{bugsCaught}/{BUG_COUNT}</div>
-                            </div>
+                            {/* Counter removed as requested */}
                             <div>
                                 <div className="text-[10px] text-slate-400">HEALTH</div>
                                 <div className="flex gap-1 mt-1">

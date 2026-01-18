@@ -14,6 +14,7 @@ const RailFence = () => {
     const [letters, setLetters] = useState([]); // Pool
     const [rails, setRails] = useState({ 0: [], 1: [] }); // 2 Rails
     const [placements, setPlacements] = useState({});
+    const [selectedLetterId, setSelectedLetterId] = useState(null);
 
     // Initialize random word
     useEffect(() => {
@@ -23,22 +24,22 @@ const RailFence = () => {
         setLetters([...wordObj]);
         setRails({ 0: [], 1: [] });
         setPlacements({});
+        setSelectedLetterId(null);
     }, []);
 
-    const handleDragEnd = (event, info, letterId) => {
-        const y = info.point.y;
-        const windowHeight = window.innerHeight;
-
-        // Simple hit detection for 2 rails
-        // Top Rail: < 60% height
-        // Bottom Rail: > 60% height (approx)
-        let targetRail = -1;
-        if (y > windowHeight * 0.4 && y < windowHeight * 0.6) targetRail = 0;
-        else if (y > windowHeight * 0.6 && y < windowHeight * 0.8) targetRail = 1;
-
-        if (targetRail !== -1) {
-            placeLetter(letterId, targetRail);
+    const handleLetterClick = (letterId) => {
+        if (selectedLetterId === letterId) {
+            setSelectedLetterId(null); // Deselect
+        } else {
+            setSelectedLetterId(letterId);
         }
+    };
+
+    const handleRailClick = (railIndex) => {
+        if (!selectedLetterId) return;
+
+        placeLetter(selectedLetterId, railIndex);
+        setSelectedLetterId(null);
     };
 
     const placeLetter = (letterId, railIndex) => {
@@ -47,9 +48,18 @@ const RailFence = () => {
         // 2-Rail Sequence: 0, 1, 0, 1... (Even=0, Odd=1)
         const expectedRail = currentIndex % 2;
 
+        // Strict Letter Validation: Must match the target character at the current index
+        const selectedChar = letters.find(l => l.id === letterId)?.char;
+        const targetChar = targetWord[currentIndex]?.char;
+
+        if (selectedChar !== targetChar) {
+            recordMistake('wrong_letter');
+            return;
+        }
+
         if (railIndex !== expectedRail) {
             recordMistake('rail_placement');
-            return;
+            return; // Don't crash or move, just record mistake
         }
 
         setPlacements(prev => ({ ...prev, [letterId]: railIndex }));
@@ -59,6 +69,28 @@ const RailFence = () => {
         if (currentIndex + 1 === targetWord.length) {
             setSolved(true);
             setTimeout(() => completeMission('rail-fence'), 1500);
+        }
+    };
+
+    const returnToTray = (event, letterId, railIndex) => {
+        event.stopPropagation(); // Prevent rail click
+        // Remove from rail
+        setRails(prev => ({
+            ...prev,
+            [railIndex]: prev[railIndex].filter(id => id !== letterId)
+        }));
+
+        // Remove from placements
+        setPlacements(prev => {
+            const newPlacements = { ...prev };
+            delete newPlacements[letterId];
+            return newPlacements;
+        });
+
+        // Add back to letters pool
+        const char = targetWord.find(l => l.id === letterId)?.char;
+        if (char) {
+            setLetters(prev => [...prev, { id: letterId, char }]);
         }
     };
 
@@ -79,7 +111,11 @@ const RailFence = () => {
 
                     <div className="flex gap-4 justify-center">
                         <button
-                            onClick={exitMission}
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                exitMission();
+                            }}
                             className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 rounded uppercase font-bold tracking-widest transition-colors"
                         >
                             <Home size={20} /> Base Menu
@@ -88,57 +124,76 @@ const RailFence = () => {
                 </motion.div>
             ) : (
                 <>
-                    {/* Letter Pool */}
-                    <div className="flex gap-2 mb-8 bg-slate-900/50 p-4 rounded-lg min-h-[80px]">
-                        {letters.map(l => (
-                            <motion.div
-                                drag
-                                dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
-                                dragElastic={0.2}
-                                dragMomentum={false}
-                                onDragEnd={(e, info) => handleDragEnd(e, info, l.id)}
-                                key={l.id}
-                                className="w-12 h-12 bg-neon-blue text-black text-xl font-bold flex items-center justify-center rounded cursor-grab active:cursor-grabbing z-50 hover:scale-110 transition-transform shadow-[0_0_15px_rgba(0,243,255,0.4)]"
-                            >
-                                {l.char}
-                            </motion.div>
-                        ))}
+                    {/* Letter Pool (Holding Bay) */}
+                    <div className="flex gap-4 mb-8 bg-slate-900/80 p-6 rounded-lg min-h-[100px] border border-slate-700 shadow-inner w-full max-w-3xl justify-center items-center">
+                        {letters.length === 0 && <span className="text-slate-600 italic">Holding Bay Empty</span>}
+                        {letters.map(l => {
+                            const isSelected = selectedLetterId === l.id;
+                            return (
+                                <motion.div
+                                    layout
+                                    layoutId={l.id}
+                                    onClick={() => handleLetterClick(l.id)}
+                                    key={l.id}
+                                    className={`w-14 h-14 text-xl font-bold flex items-center justify-center rounded cursor-pointer transition-all ${isSelected
+                                        ? 'bg-neon-blue text-black shadow-[0_0_20px_#00f3ff] scale-110 ring-2 ring-white'
+                                        : 'bg-slate-800 text-neon-blue border border-neon-blue/30 hover:bg-slate-700 hover:scale-105'
+                                        }`}
+                                >
+                                    {l.char}
+                                </motion.div>
+                            );
+                        })}
                     </div>
 
                     {/* Rails */}
-                    <div className="w-full max-w-3xl space-y-12 relative mt-8">
+                    <div className="w-full max-w-4xl space-y-8 relative mt-4">
                         {/* Visual Zig-Zag Line */}
-                        <svg className="absolute top-8 left-8 w-full h-[6.5rem] -z-10 opacity-30 pointer-events-none">
-                            <defs>
-                                <pattern id="zigzag" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                                    <path d="M 0 10 L 50 90 L 100 10" fill="none" stroke="#00f3ff" strokeWidth="2" />
-                                </pattern>
-                            </defs>
-                            {/* Just drawing a dynamic path is complex without exact coords. Use a simpler static hint opacity */}
+                        <svg className="absolute top-1/2 left-0 w-full h-full -translate-y-1/2 -z-10 opacity-20 pointer-events-none">
+                            {/* Decorative background element */}
                         </svg>
 
                         {[0, 1].map(railIndex => (
                             <div
                                 key={railIndex}
-                                className="h-20 border-b-2 border-slate-700 flex items-center gap-6 px-8 bg-slate-800/20 relative backdrop-blur-sm"
+                                onClick={() => handleRailClick(railIndex)}
+                                className={`h-24 border-2 flex items-center gap-4 px-8 relative transition-colors cursor-pointer ${selectedLetterId
+                                    ? 'border-neon-blue/50 bg-neon-blue/5 hover:bg-neon-blue/10'
+                                    : 'border-slate-700 bg-slate-800/30'
+                                    } rounded-lg`}
                             >
-                                <span className="absolute left-0 -top-6 text-slate-500 text-xs font-mono uppercase tracking-widest">
+                                <span className="absolute left-4 -top-3 bg-slate-950 px-2 text-slate-400 text-xs font-mono uppercase tracking-widest">
                                     {railIndex === 0 ? 'TOP RAIL (First)' : 'BOTTOM RAIL (Second)'}
                                 </span>
                                 {rails[railIndex].map(lid => {
                                     const char = targetWord.find(l => l.id === lid)?.char;
                                     return (
                                         <motion.div
-                                            initial={{ scale: 0 }} animate={{ scale: 1 }}
+                                            layout
+                                            layoutId={lid}
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
                                             key={lid}
-                                            className="w-12 h-12 bg-emerald-600 text-white font-bold flex items-center justify-center rounded shadow-lg border border-emerald-400"
+                                            onClick={(e) => returnToTray(e, lid, railIndex)}
+                                            className="w-12 h-12 bg-emerald-600 text-white font-bold flex items-center justify-center rounded shadow-lg border border-emerald-400 cursor-pointer hover:bg-red-500 hover:text-white hover:border-red-400 transition-colors relative group"
                                         >
                                             {char}
+                                            <span className="absolute -top-8 bg-black text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Return</span>
                                         </motion.div>
                                     );
                                 })}
+                                {selectedLetterId && (
+                                    <div className="ml-auto text-neon-blue/50 text-sm animate-pulse">
+                                        CLICK TO PLACE
+                                    </div>
+                                )}
                             </div>
                         ))}
+                    </div>
+
+                    <div className="mt-8 text-slate-500 text-sm">
+                        <p>1. Click a letter to SELECT.</p>
+                        <p>2. Click a Rail to PLACE.</p>
                     </div>
                 </>
             )}

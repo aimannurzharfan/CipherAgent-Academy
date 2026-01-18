@@ -1,12 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Radio, Terminal, LogOut } from 'lucide-react';
+import { Shield, Radio, Terminal, LogOut, Home } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 import CyberTutor from '../ui/CyberTutor';
 import { cn } from '../../lib/utils';
 
 const Layout = ({ children }) => {
-    const { agentName } = useGame();
+    const { agentName, currentMission, exitMission } = useGame();
 
     return (
         <div className="min-h-screen bg-slate-950 text-emerald-400 font-mono relative overflow-hidden selection:bg-emerald-500/30">
@@ -47,9 +47,27 @@ const Layout = ({ children }) => {
                 {/* MAIN CONTENT AREA */}
                 <main className="flex-1 flex flex-col min-w-0 relative">
                     <header className="h-14 mb-4 border-b border-slate-800 flex items-center justify-between px-4 bg-slate-900/50 rounded-lg">
-                        <div className="text-xl font-bold tracking-widest bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent">
-                            CIPHER_AGENT // ACADEMY
+                        <div className="flex items-center gap-4">
+                            {/* Global Abort Button */}
+                            {currentMission && (
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        exitMission();
+                                    }}
+                                    className="flex items-center gap-2 text-xs font-bold text-red-500 border border-red-500/50 px-3 py-1 rounded hover:bg-red-500/10 transition-colors uppercase tracking-widest"
+                                    title="Return to Base Menu"
+                                >
+                                    <Home size={14} /> Base Menu
+                                </button>
+                            )}
+
+                            <div className="text-xl font-bold tracking-widest bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent">
+                                CIPHER_AGENT // ACADEMY
+                            </div>
                         </div>
+
                         <div className="flex gap-4 text-slate-400">
                             <div className="flex items-center gap-2 text-xs">
                                 <Radio className="w-4 h-4 text-emerald-500 animate-pulse" />

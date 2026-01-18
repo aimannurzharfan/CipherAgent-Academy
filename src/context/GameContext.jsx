@@ -77,6 +77,14 @@ export function GameProvider({ children }) {
         setMissionState(prev => prev.map(m =>
             m.id === missionId ? { ...m, status: 'completed' } : m
         ));
+
+        // Sync currentMission safely using functional update to avoid race conditions
+        setCurrentMission(prev => {
+            if (prev && prev.id === missionId) {
+                return { ...prev, status: 'completed' };
+            }
+            return prev;
+        });
     };
 
     const failMission = (missionId) => {
