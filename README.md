@@ -2,15 +2,13 @@
 
 **CipherAgent Academy** is an interactive cryptography learning platform designed to train aspiring operatives in the art of secure communication. Through a series of immersive missions, agents learn about classical and modern encryption techniques, key exchange protocols, and network security vulnerabilities.
 
-![CipherAgent Academy Interface](https://via.placeholder.com/800x450?text=CipherAgent+Academy+Interface)
-
-## 🚀 Mission Brief
+## Mission Brief
 Welcome to the Academy. Your training will consist of tactical simulations where you must master cryptographic concepts to succeed.
 
-### 🗺️ Mission Control
+### Mission Control
 Navigate the global network via the **Mission Map**. Select active nodes to begin your training operations.
 
-### 🕵️ Active Missions
+### Active Missions
 
 #### 1. Rail Fence Cipher (Transposition)
 *   **Objective**: Decrypt intercepted messages by understanding transposition patterns.
@@ -27,7 +25,7 @@ Navigate the global network via the **Mission Map**. Select active nodes to begi
 *   **Mechanics**: Simulate an attacker (Eve) intercepting keys between Alice and Bob to decrypt their private messages, or learn how to prevent such attacks.
 *   **Key Concept**: Network Security, Key Authentication, Interception.
 
-### 🤖 CyberTutor (AI Assistant)
+### CyberTutor (AI Assistant)
 Access the **CyberTutor** terminal for real-time tactical support.
 *   **Powered by**: Google Gemini AI.
 *   **Function**: Context-aware guidance, concept explanation, and mission hints.
@@ -35,7 +33,7 @@ Access the **CyberTutor** terminal for real-time tactical support.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 This academy simulation is built with:
 *   **Core**: React 19, Vite
 *   **Styling**: TailwindCSS
@@ -44,7 +42,7 @@ This academy simulation is built with:
 
 ---
 
-## ⚡ Installation & Deployment
+## Installation & Deployment
 
 ### Prerequisites
 *   Node.js (v18+)
