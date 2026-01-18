@@ -62,6 +62,10 @@ export function GameProvider({ children }) {
         }
     };
 
+    const exitMission = () => {
+        setCurrentMission(null);
+    };
+
     const completeMission = (missionId) => {
         // Find index
         const index = missionState.findIndex(m => m.id === missionId);
@@ -80,6 +84,24 @@ export function GameProvider({ children }) {
         console.log(`Mission ${missionId} failed.`);
     };
 
+    const [mistakeCount, setMistakeCount] = useState(0);
+    const [lastError, setLastError] = useState(null);
+    const [lastEvent, setLastEvent] = useState(null);
+
+    const recordMistake = (errorType = 'general') => {
+        setMistakeCount(prev => prev + 1);
+        setLastError({ type: errorType, timestamp: Date.now() });
+    };
+
+    const triggerEvent = (eventType, data = {}) => {
+        setLastEvent({ type: eventType, data, timestamp: Date.now() });
+    };
+
+    // Reset mistakes when mission changes
+    useEffect(() => {
+        setMistakeCount(0);
+    }, [currentMission]);
+
     return (
         <GameContext.Provider value={{
             agentName,
@@ -88,8 +110,14 @@ export function GameProvider({ children }) {
             currentMission,
             registerAgent,
             startMission,
+            exitMission,
             completeMission,
-            failMission
+            failMission,
+            mistakeCount,
+            recordMistake,
+            lastError,
+            lastEvent,
+            triggerEvent
         }}>
             {children}
         </GameContext.Provider>

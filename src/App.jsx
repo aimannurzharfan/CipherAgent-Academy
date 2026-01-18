@@ -40,69 +40,70 @@ const StartScreen = ({ onStart }) => {
   )
 }
 
-function AppContent() {
-  const { agentName, registerAgent, currentMission, startMission, progress, completeMission } = useGame();
-  const [showBriefing, setShowBriefing] = useState(false);
-  const [activeMissionData, setActiveMissionData] = useState(null);
+function GameRoot() {
+  const { agentName, registerAgent } = useGame();
 
-  // Initial check for agent name
   if (!agentName) {
     return <StartScreen onStart={registerAgent} />;
   }
 
-  // Handle Mission Selection from Map (handled via Context, but we need to trigger Briefing)
+  return <AppContent />;
+}
+
+function AppContent() {
+  const { currentMission } = useGame();
+  const [showBriefing, setShowBriefing] = useState(false);
+  const [activeMissionData, setActiveMissionData] = useState(null);
+
+  // Handle Mission Selection from Map
   useEffect(() => {
-    if (currentMission && currentMission.status !== 'active') {
-      setActiveMissionData(currentMission);
-      setShowBriefing(true);
+    if (currentMission) {
+      console.log("Mission Selected:", currentMission);
+      // If it's not completed, show briefing. If completed, maybe show map?
+      if (currentMission.status !== 'completed') {
+        setActiveMissionData(currentMission);
+        setShowBriefing(true);
+      }
+    } else {
+      setShowBriefing(false);
     }
   }, [currentMission]);
 
   const handleMissionAccept = () => {
+    console.log("Mission Accepted");
     setShowBriefing(false);
-    // Force update status active? done in context/component logic usually
   };
 
   const handleMissionDecline = () => {
+    console.log("Mission Declined");
     setShowBriefing(false);
-    // Reset current mission?
-    window.location.reload(); // Simple reset for now or add context reset
+    window.location.href = "/";
   };
 
   return (
     <Layout>
       <BriefingModal
-        mission={activeMissionData}
+        mission={activeMissionData && showBriefing ? activeMissionData : null}
         onClose={handleMissionDecline}
         onStart={handleMissionAccept}
       />
 
       <AnimatePresence mode="wait">
-        {/* If Briefing is open or NO mission is active, show Map */}
-        {(showBriefing || !currentMission) ? (
-          <motion.div
-            key="map"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="h-full"
-          >
-            <MissionMap />
-          </motion.div>
-        ) : (
-          // Render Active Mission
-          <motion.div
-            key="mission"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.05 }}
-            className="h-full"
-          >
-            {currentMission.id === 'diffie-hellman' && <DiffieHellman />}
-            {currentMission.id === 'mitm' && <MITM />}
-            {currentMission.id === 'rail-fence' && <RailFence />}
-          </motion.div>
-        )}
+        <motion.div
+          key={showBriefing ? "map" : (currentMission?.id || "map")}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="h-full"
+        >
+          {(!currentMission || showBriefing) ? <MissionMap /> : (
+            <>
+              {currentMission.id === 'diffie-hellman' && <DiffieHellman />}
+              {currentMission.id === 'mitm' && <MITM />}
+              {currentMission.id === 'rail-fence' && <RailFence />}
+            </>
+          )}
+        </motion.div>
       </AnimatePresence>
     </Layout>
   );
@@ -110,6 +111,6 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AppContent />
+    <GameRoot />
   );
 }

@@ -1,20 +1,17 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+// Retrieve API Key from Environment Variables
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-let genAI = null;
-let model = null;
-
-if (API_KEY) {
-    genAI = new GoogleGenerativeAI(API_KEY);
-    model = genAI.getGenerativeModel({ model: "gemini-pro" });
+// Strict validation
+if (!apiKey) {
+    console.warn("Warning: VITE_GEMINI_API_KEY is missing in .env");
 }
 
-export const generateGeminiResponse = async (prompt, missionContext) => {
-    if (!model) {
-        throw new Error("AI Offline: API Key Missing");
-    }
+const genAI = new GoogleGenerativeAI(apiKey);
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
+export const generateGeminiResponse = async (prompt, missionContext) => {
     try {
         const gameContext = `
             You are "CyberTutor", a witty and slightly dramatic Spy Handler AI for a teenage spy game.
@@ -38,7 +35,7 @@ export const generateGeminiResponse = async (prompt, missionContext) => {
         const response = await result.response;
         return response.text();
     } catch (error) {
-        console.error("Gemini Error:", error);
-        throw new Error("Secure Line Compromised (API Error)");
+        console.error(">>> DEBUG ERROR:", error);
+        throw new Error(`[DebugMode] API Error: ${error.message || error.toString()}`);
     }
 };

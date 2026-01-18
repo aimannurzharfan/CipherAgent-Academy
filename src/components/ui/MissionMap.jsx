@@ -7,6 +7,10 @@ import { cn } from '../../lib/utils';
 const MissionMap = () => {
     const { missionState, progress, startMission } = useGame();
 
+    const missions = missionState || [];
+    const maxIndex = Math.max(missions.length - 1, 1);
+    const progressVal = Number(progress) || 0;
+
     return (
         <div className="h-full flex items-center justify-center bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center relative">
             <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm"></div>
@@ -22,12 +26,12 @@ const MissionMap = () => {
                         <motion.div
                             className="h-full bg-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.5)]"
                             initial={{ width: '0%' }}
-                            animate={{ width: `${(progress / (missionState.length - 1)) * 100}%` }}
+                            animate={{ width: `${Math.min((progressVal / maxIndex) * 100, 100)}%` }}
                             transition={{ duration: 1.5, ease: "easeInOut" }}
                         />
                     </div>
 
-                    {missionState.map((mission, index) => {
+                    {missions.map((mission, index) => {
                         const isLocked = mission.locked;
                         const isCompleted = mission.status === 'completed';
                         const isNext = !isLocked && !isCompleted;
@@ -42,7 +46,7 @@ const MissionMap = () => {
                                 className={cn(
                                     "relative w-24 h-24 rounded-full border-4 flex items-center justify-center transition-all duration-300",
                                     isCompleted ? "border-emerald-500 bg-emerald-900/80 text-emerald-400" :
-                                        isNext ? "border-neon-blue bg-slate-900 text-white shadow-[0_0_30px_#00f3ff50] animate-pulse-fast" :
+                                        isNext ? "border-neon-blue bg-slate-900 text-white shadow-[0_0_30px_#00f3ff50]" :
                                             "border-slate-700 bg-slate-800 text-slate-500 cursor-not-allowed"
                                 )}
                             >

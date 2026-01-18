@@ -1,29 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Bot, AlertTriangle } from 'lucide-react';
-import { useGame } from '../../context/GameContext';
-import { generateGeminiResponse } from '../../lib/gemini';
-
-// Fallback responses for demo mode
-const DEMO_RESPONSES = [
-    "I'm detecting a weak encryption pattern. Try mixing the primary colors first.",
-    "The hacker is monitoring the frequency. Keep your signal steady.",
-    "That looks safe, but double-check your public keys.",
-    "Affirmative, Agent. The line is secure... for now.",
-    "Remember: Public keys can be seen by anyone. Private keys stay with you."
-];
+import React, { useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Bot, AlertTriangle, Wifi } from 'lucide-react';
+import { useCyberTutor } from '../../hooks/useCyberTutor';
 
 const CyberTutor = () => {
-    const { currentMission, progress } = useGame();
-    const [messages, setMessages] = useState([
-        { id: 1, sender: 'ai', text: "Systems online. Monitoring your mission progress, Agent." }
-    ]);
-    const [input, setInput] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
+    // Logic extracted to custom hook
+    const { messages, options, handleOptionClick } = useCyberTutor();
     const scrollRef = useRef(null);
-
-    // Check for API Key (Simulation Mode Check)
-    const hasKey = !!import.meta.env.VITE_GEMINI_API_KEY;
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -31,42 +14,23 @@ const CyberTutor = () => {
         }
     }, [messages]);
 
-    const handleSend = async () => {
-        if (!input.trim()) return;
-
-        const userMsg = { id: Date.now(), sender: 'user', text: input };
-        setMessages(prev => [...prev, userMsg]);
-        setInput('');
-        setIsTyping(true);
-
-        try {
-            let responseText = "";
-
-            if (hasKey) {
-                responseText = await generateGeminiResponse(input, currentMission);
-            } else {
-                // Simulation Mode
-                await new Promise(r => setTimeout(r, 1000 + Math.random() * 1000)); // Fake network delay
-                responseText = DEMO_RESPONSES[Math.floor(Math.random() * DEMO_RESPONSES.length)];
-            }
-
-            setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: responseText }]);
-        } catch (error) {
-            setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: "ERR: CONNECTION LOST. " + error.message }]);
-        } finally {
-            setIsTyping(false);
-        }
-    };
-
     return (
         <div className="flex flex-col h-full bg-slate-950/50">
-            {!hasKey && (
-                <div className="bg-yellow-500/10 border-b border-yellow-500/20 p-2 text-[10px] text-yellow-500 flex items-center gap-2 justify-center">
-                    <AlertTriangle size={12} />
-                    SIMULATION MODE (NO API KEY)
+            {/* Status Header - Simplified */}
+            <div className="p-2 text-[10px] flex items-center justify-between border-b bg-emerald-900/10 border-emerald-500/10 text-emerald-500">
+                <div className="flex items-center gap-2">
+                    <Bot size={12} />
+                    <span className="font-mono tracking-wider uppercase">
+                        Cyber Advisor
+                    </span>
                 </div>
-            )}
+                <div className="flex items-center gap-1.5" title="Secure Contextual Link">
+                    <span className="uppercase">UPLINK ACTIVE</span>
+                    <Wifi size={12} />
+                </div>
+            </div>
 
+            {/* Chat Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
                 {messages.map((msg) => (
                     <motion.div
@@ -76,44 +40,38 @@ const CyberTutor = () => {
                         className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                         <div className={`
-                            max-w-[85%] rounded-lg p-3 text-xs leading-relaxed
+                            max-w-[90%] rounded-lg p-3 text-xs leading-relaxed border shadow-lg
                             ${msg.sender === 'user'
-                                ? 'bg-emerald-900/30 text-emerald-100 border border-emerald-800'
-                                : 'bg-slate-800/50 text-slate-300 border border-slate-700'
+                                ? 'bg-emerald-500/10 text-emerald-100 border-emerald-500/20 font-mono text-[10px] tracking-wide'
+                                : 'bg-slate-800/90 text-slate-200 border-slate-700'
                             }
                         `}>
-                            {msg.sender === 'ai' && <Bot size={14} className="mb-1 text-emerald-500" />}
+                            {msg.sender === 'ai' && (
+                                <div className="text-[9px] uppercase tracking-widest text-emerald-500/70 mb-1 flex items-center gap-1">
+                                    <Bot size={10} /> ADVISOR
+                                </div>
+                            )}
                             {msg.text}
                         </div>
                     </motion.div>
                 ))}
-
-                {isTyping && (
-                    <div className="flex justify-start">
-                        <div className="bg-slate-800/50 p-2 rounded-lg flex gap-1">
-                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce"></span>
-                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.4s]"></span>
-                        </div>
-                    </div>
-                )}
             </div>
 
-            <div className="p-3 bg-slate-900 border-t border-slate-800 flex gap-2">
-                <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder="Query CyberTutor..."
-                    className="flex-1 bg-slate-950 border border-slate-800 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
-                />
-                <button
-                    onClick={handleSend}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded transition-colors"
-                >
-                    <Send size={16} />
-                </button>
+            {/* Tactical Options Area */}
+            <div className="p-3 bg-slate-900/90 border-t border-slate-800 backdrop-blur-sm">
+                <div className="flex flex-wrap gap-2 justify-center">
+                    {options.length > 0 ? options.map((opt, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => handleOptionClick(opt.action)}
+                            className="bg-emerald-900/40 hover:bg-emerald-600/20 border border-emerald-500/30 hover:border-emerald-500/60 text-emerald-100 text-[10px] tracking-wide uppercase px-3 py-2 rounded transition-all active:scale-95"
+                        >
+                            {`> ${opt.label}`}
+                        </button>
+                    )) : (
+                        <span className="text-[10px] text-slate-600 italic">SYSTEM IDLE // Awaiting Status Change</span>
+                    )}
+                </div>
             </div>
         </div>
     );
