@@ -56,5 +56,35 @@ This project is designed to run out-of-the-box. No complex database setup requir
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/aimannurzharfan/CipherAgent-Academy.git](https://github.com/aimannurzharfan/CipherAgent-Academy.git)
+git clone https://github.com/aimannurzharfan/CipherAgent-Academy.git
 cd CipherAgent-Academy
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Configure Your API Key
+
+The Gemini API key is **server-side only** — it must **not** be prefixed with `VITE_` (that would expose it to the browser bundle).
+
+**Locally:** create a `.env` file in the project root (already gitignored):
+```
+GEMINI_API_KEY=your_key_here
+```
+
+**On Vercel:** go to **Project Settings → Environment Variables**, add `GEMINI_API_KEY`, and delete the old `VITE_GEMINI_API_KEY` if it exists.
+
+### 4. Run the App
+
+```bash
+vercel dev    # Full stack: React UI + /api/tutor serverless function (recommended)
+npm run dev   # UI only — CyberTutor AI calls will fail without the /api route
+```
+
+### 5. Smoke-test the API Key
+
+```bash
+node test-gemini.js
+```
