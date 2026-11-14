@@ -1,89 +1,59 @@
 # CipherAgent Academy
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Online-success?style=for-the-badge&logo=vercel)](https://agentacademy-olxen5ua7-aiman-nurzharfans-projects.vercel.app/) 
-[![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev/)
-[![Tailwind](https://img.shields.io/badge/Tailwind-CSS-38bdf8?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
+An interactive web game that teaches core cryptography through three short missions: the Rail Fence cipher, the Diffie-Hellman key exchange, and defending a key exchange against a man-in-the-middle attack. A built-in tutor watches your progress and steps in with hints when you get stuck.
 
-> **"Mission: Secure the Line. Decode the Message. Defeat the Hacker."**
+**[Play it live](https://agentacademy-olxen5ua7-aiman-nurzharfans-projects.vercel.app/)**
 
-**CipherAgent Academy** is an interactive cryptography learning platform designed to train aspiring operatives in the art of secure communication. Unlike traditional textbooks, agents learn by doing—executing tactical simulations to master encryption algorithms, key exchange protocols, and network defense.
+![React](https://img.shields.io/badge/React-19-blue?logo=react)
+![Vite](https://img.shields.io/badge/Vite-build-646CFF?logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38bdf8?logo=tailwindcss&logoColor=white)
 
-## 🔗 Live Operations
-Access the deployed simulation terminal here:
-**[Launch CipherAgent Academy](https://agentacademy-olxen5ua7-aiman-nurzharfans-projects.vercel.app/)**
+## The missions
 
----
+Pick a mission from the map. Each one teaches a single idea by making you use it.
 
-## Mission Briefing
+| Mission | What you do | What you learn |
+| --- | --- | --- |
+| 1. Rail Fence cipher | Rebuild a scrambled message on a zig-zag rail grid | Transposition ciphers |
+| 2. Diffie-Hellman handshake | Mix public and private "paint" colours to agree on a shared colour with HQ, without ever sending your private one | Public-key exchange and shared secrets |
+| 3. The interception | Spot and stop attacker packets trying to hijack a key exchange between Alice and Bob | Man-in-the-middle attacks and why authentication matters |
 
-Navigate the global network via the **Mission Map** to unlock and execute your training operations.
+## CyberTutor
 
-### Mission 1: The Rail Fence Cipher (Transposition)
-* **Objective:** Decrypt intercepted messages by mastering transposition patterns.
-* **Mechanics:** A "Click-to-Teleport" puzzle where agents reconstruct scrambled data on a Zig-Zag rail grid.
-* **Key Concept:** Transposition Ciphers & Data Obfuscation.
+The tutor tracks how each mission is going. If you fail a puzzle or stall on a step, it pushes a hint card for that exact concept, straight from a built-in knowledge base. You can also ask it questions in your own words. With a Gemini key set, those answers come from Google Gemini through a small serverless function, so the key never reaches the browser. Without a key, the tutor still answers from its built-in notes.
 
-### Mission 2: The Diffie-Hellman Handshake
-* **Objective:** Establish a secure line with HQ over a compromised public channel.
-* **Mechanics:** An interactive "Color Lab" wizard. Agents mix public and private "paint" colors to generate a shared secret key without ever revealing their private components.
-* **Key Concept:** Public Key Cryptography & Shared Secret Derivation.
+## Tech stack
 
-### Mission 3: The Interception (MITM Defense)
-* **Objective:** Defend the network against a "Man-in-the-Middle" attack.
-* **Mechanics:** A fast-paced firewall defense game. Agents must identify and neutralize "Red Bug" packets (Hackers) attempting to hijack the key exchange between Alice and Bob.
-* **Key Concept:** Network Security, Authentication, & Active Defense.
+- React 19 with Vite
+- Tailwind CSS
+- Framer Motion for drag-and-drop and transitions
+- Cryptography logic written from scratch in JavaScript
+- Vercel serverless function (`/api/tutor`) for Gemini
 
-### CyberTutor (Tactical Advisor)
-Your personal field handler, powered by **First Order Logic**.
-* **Context-Aware:** Monitors your mission progress in real-time.
-* **Tactical Support:** If you fail a puzzle or struggle with a concept, the Advisor automatically pushes relevant hints and "Briefing Cards" to your HUD.
-* **Offline Capable:** Fully functional without external API dependencies.
+## Run it locally
 
----
-
-## Tech Stack
-
-* **Core:** React 19 (Vite)
-* **Styling:** TailwindCSS (Custom "Cyberpunk" Design System)
-* **Animations:** Framer Motion (Fluid drag-and-drop & transition effects)
-* **Logic:** Custom JavaScript implementations of cryptographic algorithms.
-
----
-
-## Installation & Local Development
-
-This project is designed to run out-of-the-box. No complex database setup required.
-
-### 1. Clone the Repository
 ```bash
 git clone https://github.com/aimannurzharfan/CipherAgent-Academy.git
 cd CipherAgent-Academy
-```
-
-### 2. Install Dependencies
-```bash
 npm install
 ```
 
-### 3. Configure Your API Key
+To let Gemini answer the tutor's free-text questions, create a `.env` file in the project root (it is gitignored):
 
-The Gemini API key is **server-side only** — it must **not** be prefixed with `VITE_` (that would expose it to the browser bundle).
-
-**Locally:** create a `.env` file in the project root (already gitignored):
 ```
 GEMINI_API_KEY=your_key_here
 ```
 
-**On Vercel:** go to **Project Settings → Environment Variables**, add `GEMINI_API_KEY`, and delete the old `VITE_GEMINI_API_KEY` if it exists.
+Keep the variable name without a `VITE_` prefix, so Vite never bundles it into the browser code. On Vercel, add the same variable under Project Settings > Environment Variables.
 
-### 4. Run the App
+Then start it:
 
 ```bash
-vercel dev    # Full stack: React UI + /api/tutor serverless function (recommended)
-npm run dev   # UI only — CyberTutor AI calls will fail without the /api route
+vercel dev     # full app: game plus the /api/tutor function
+npm run dev    # game only; the tutor answers from its built-in notes
 ```
 
-### 5. Smoke-test the API Key
+To check the key works:
 
 ```bash
 node test-gemini.js
